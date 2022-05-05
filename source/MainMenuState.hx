@@ -173,6 +173,10 @@ class MainMenuState extends MusicBeatState
 		}
 		#end
 
+                #if android
+                addVirtualPad(UP_DOWN, A_B_E);
+                #end
+
 		super.create();
 	}
 
@@ -203,18 +207,6 @@ class MainMenuState extends MusicBeatState
 
 		if (!selectedSomethin)
 		{
-			if (FlxG.mouse.wheel >= 1)
-				{
-					FlxG.sound.play(Paths.sound('scrollMenu'));
-					changeItem(-1);
-				}
-
-				if (FlxG.mouse.wheel <= -1)
-					{
-						FlxG.sound.play(Paths.sound('scrollMenu'));
-						changeItem(1);
-					}
-
 			if (controls.UI_UP_P)
 			{
 				FlxG.sound.play(Paths.sound('scrollMenu'));
@@ -226,12 +218,6 @@ class MainMenuState extends MusicBeatState
 				FlxG.sound.play(Paths.sound('scrollMenu'));
 				changeItem(1);
 			}
-			if(FlxG.mouse.pressedRight)
-				{
-					selectedSomethin = true;
-					FlxG.sound.play(Paths.sound('cancelMenu'));
-					MusicBeatState.switchState(new TitleState());
-				}
 
 			if (controls.BACK)
 			{
@@ -240,30 +226,30 @@ class MainMenuState extends MusicBeatState
 				MusicBeatState.switchState(new TitleState());
 			}
 
-			if (FlxG.mouse.pressed)
+			if (controls.ACCEPT)
+			{
+				if (optionShit[curSelected] == 'donate')
 				{
-					if (optionShit[curSelected] == 'donate')
+					CoolUtil.browserLoad('https://ninja-muffin24.itch.io/funkin');
+				}
+				else
+				{
+					selectedSomethin = true;
+					FlxG.sound.play(Paths.sound('confirmMenu'));
+
+					if(ClientPrefs.flashing) FlxFlicker.flicker(magenta, 1.1, 0.15, false);
+
+					menuItems.forEach(function(spr:FlxSprite)
+					{
+						if (curSelected != spr.ID)
 						{
-							CoolUtil.browserLoad('https://ninja-muffin24.itch.io/funkin');
-						}
-						else
-						{
-							selectedSomethin = true;
-							FlxG.sound.play(Paths.sound('confirmMenu'));
-		
-							if(ClientPrefs.flashing) FlxFlicker.flicker(magenta, 1.1, 0.15, false);
-		
-							menuItems.forEach(function(spr:FlxSprite)
-							{
-								if (curSelected != spr.ID)
+							FlxTween.tween(spr, {alpha: 0}, 0.4, {
+								ease: FlxEase.quadOut,
+								onComplete: function(twn:FlxTween)
 								{
-									FlxTween.tween(spr, {alpha: 0}, 0.4, {
-										ease: FlxEase.quadOut,
-										onComplete: function(twn:FlxTween)
-										{
-											spr.kill();
-										}
-									});
+									spr.kill();
+								}
+							});
 								}
 								else
 								{
@@ -347,13 +333,11 @@ class MainMenuState extends MusicBeatState
 					});
 				}
 			}
-			#if desktop
-			else if (FlxG.keys.anyJustPressed(debugKeys))
+			else if (FlxG.keys.anyJustPressed(debugKeys) #if android || _virtualpad.buttonE.justPressed #end)
 			{
 				selectedSomethin = true;
 				MusicBeatState.switchState(new MasterEditorMenu());
 			}
-			#end
 		}
 
 		super.update(elapsed);
